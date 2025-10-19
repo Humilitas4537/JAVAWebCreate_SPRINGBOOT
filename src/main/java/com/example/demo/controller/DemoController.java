@@ -42,6 +42,7 @@ public class DemoController {
     public String about() {
         return "about_detailed";
     }
+
     
     @GetMapping("/test1")
     public String thymeleaf_test1(Model model) {
