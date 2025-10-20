@@ -6,13 +6,17 @@ import com.example.demo.model.domain.TestDB;
 import com.example.demo.model.repository.TestRepository;
 import lombok.RequiredArgsConstructor;
 
+// 서비스 클래스 추가 - Service layer  비지니스 계층
+// 주요 기능(로직) 작성
+
 @Service // 서비스 등록, 스프링 내부 자동 등록됨
-@RequiredArgsConstructor // 생성자 생성
-public class TestService {
+@RequiredArgsConstructor // final 또는 NonNull 필드의 생성자 자동 생성
+public class TestService{
     @Autowired // 객체 의존성 주입 DI(컨테이너 내부 등록)
+    // 직접 new TestRepository() 하지 않아도 스프링이 자동으로 객체 생성해 넣어줌 = 의존성 주입
     private TestRepository testRepository;
 
-    public TestDB findByName(String name) { // 이름 찾기
+    public TestDB findByName(String name){ // 이름 찾기
         return (TestDB) testRepository.findByName(name);
     }
 }

@@ -55,12 +55,24 @@ public class DemoController {
         return "thymeleaf_test1";
     }
     
+    
     // 하단에 맵핑 이어서 추가
+
+    // 컨트롤러 클래스 추가 - Controller 제어계층
+    // 사용자 요청/응답 기능 작성
     @GetMapping("/testdb")
     public String getAllTestDBs(Model model) {
         TestDB test = testService.findByName("홍길동");
         model.addAttribute("data4", test);
         System.out.println("데이터 출력 디버그 : " + test);
+
+        TestDB test1 = testService.findByName("아저씨");
+        model.addAttribute("data5", test1);
+        System.out.println("데이터 출력 디버그 : " + test1);
+
+        TestDB test2 = testService.findByName("꾸러기");
+        model.addAttribute("data6", test2);
+        System.out.println("데이터 출력 디버그 : " + test2);
         return "testdb";
     }
 } 
