@@ -10,9 +10,9 @@ import com.example.demo.model.repository.BlogRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor // 생성자 자동 생성(부분)
+@RequiredArgsConstructor // final 또는 NonNull 필드의 생성자 자동 생성 : 생성자 (로 객체)주입
 public class BlogService {
-    @Autowired // 객체 주입 자동화, 생성자 1개면 생략 가능
+    @Autowired // 객체 주입 자동화, 생성자 1개면 생략 가능 : 필드 (로 객체)주입
     private final BlogRepository blogRepository; // 리포지토리 선언
 
     public List<Article> findAll() { // 게시판 전체 목록 조회

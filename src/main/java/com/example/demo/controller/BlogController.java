@@ -1,10 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.domain.Article;
-import com.example.demo.model.domain.TestDB;
-import com.example.demo.model.service.AddArticleRequest;
 import com.example.demo.model.service.BlogService;
-import com.example.demo.model.service.TestService; // 최상단 서비스 클래스 연동 추가
+import com.example.demo.model.service.AddArticleRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +14,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @Controller // 컨트롤러 어노테이션 명시
@@ -26,17 +24,20 @@ public class BlogController {
     @Autowired
     BlogService blogService; // DemoController 클래스 아래 객체 생성
 
-    // @GetMapping("/article_list")
-    // public String article_list() {
-    //     return "article_list";
-    // }
-
     @GetMapping("/article_list") // 게시판 링크 지정
     public String article_list(Model model) {
         List<Article> list = blogService.findAll(); // 게시판 리스트
         model.addAttribute("articles", list); // 모델에 추가
         return "article_list"; // .HTML 연결
     }
+
+
+    @PostMapping("/api/articles") // post 요청
+    public String addArticle(@ModelAttribute AddArticleRequest request) { // 아직 없음(에러)
+        blogService.save(request); // 게시글 저장
+        return "redirect:/article_list";
+    }
+    
 
     @GetMapping("/article_edit/{id}") // 게시판 링크 지정
     public String article_edit(Model model, @PathVariable Long id) {
@@ -60,5 +61,11 @@ public class BlogController {
     public String deleteArticle(@PathVariable Long id) {
         blogService.delete(id);
         return "redirect:/article_list";
+    }
+
+
+    @GetMapping("/favicon.ico")
+    public void favicon() {
+        // 아무 작업도 하지 않음
     }
 }

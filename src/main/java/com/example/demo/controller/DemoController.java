@@ -3,14 +3,10 @@ package com.example.demo.controller;
 import com.example.demo.model.domain.TestDB;
 import com.example.demo.model.service.TestService; // 최상단 서비스 클래스 연동 추가
 
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
 
 @Controller // 컨트롤러 어노테이션 = View를 제공하는 컨트롤러로 설정. 
 // 매핑핸들러가 @Controller가 붙은 클래스에서 매핑을 찾아 url 요청을 처리

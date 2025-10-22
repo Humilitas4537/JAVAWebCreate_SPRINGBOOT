@@ -1,12 +1,15 @@
 package com.example.demo.model.domain;
 
 import lombok.*; // 어노테이션 자동 생성
+// getter, setter, builder, data 등 어노테이션 사용 가능
 import jakarta.persistence.*; // 기존 javax 후속 버전
+// entity, id, generatedvalue, column 등 어노테이션 사용 가능
 
 @Getter // setter는 없음(무분별한 변경 x)
 @Entity // 아래 객체와 DB 테이블을 매핑. JPA가 관리
 @Table(name = "article") // 테이블 이름을 지정. 없는 경우 클래스이름으로 설정
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // 외부 생성자 접근 방지
+// 기본 생성자 자동 생성, JPA가 내부적으로 객체 생성
 
 public class Article {
     @Id // 기본 키
