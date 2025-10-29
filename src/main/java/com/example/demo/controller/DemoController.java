@@ -1,11 +1,11 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.domain.TestDB;
+import com.example.demo.model.domain.TestDB; // 엔티티 클래스 연동
 import com.example.demo.model.service.TestService; // 최상단 서비스 클래스 연동 추가
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.ui.Model; // 컨트롤러 메서드의 매개변수로 사용할 Model 객체, View로 데이터를 키, 값으로 전달
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller // 컨트롤러 어노테이션 = View를 제공하는 컨트롤러로 설정. 
@@ -15,20 +15,25 @@ public class DemoController {
     @Autowired
     TestService testService; // DemoController 클래스 아래 객체 생성
 
+
+    // @RequestMapping(value="/", method=RequestMethod.GET) = @GetMapping("/")
+
     @GetMapping("/hello") // 전송 방식 GET
     public String hello(Model model) {
         model.addAttribute("data", "방갑습니다."); // model 설정
         // 모델은 페이지에 그려질 정보로써 View에 데이터를 키 값으로 전달
         return "hello"; // viewName 반환
         // 자동으로 ViewResolver가 .html로 연결하여 템플릿 폴더에서 찾음
+        // View에서 thymeleaf가 html에 model 데이터를 삽입함으로써 최종 페이지 화면 구성
     }
+
 
     @GetMapping("/hello2")
     public String hello2(Model model) {
         model.addAttribute("data1", "model로 페이지에 그릴 정보를 전달합니다.");
-        model.addAttribute("data2", "model은 key-value 값으로,");
-        model.addAttribute("data3", "key를 이용해 html에 값을 출력합니다.");
-        model.addAttribute("data4", "사용법은 th:text='${key}'");
+        model.addAttribute("data2", "model은 key-value 값으로");
+        model.addAttribute("data3", "thymeleaf가 th: 속성에 데이터를 넣어서 화면을 구성합니다.");
+        model.addAttribute("data4", "예) th:text='${key}'");
         model.addAttribute("data5", "${}는 변수 표현식으로 {}안에 key를 넣습니다.");
         return "hello2";
     }

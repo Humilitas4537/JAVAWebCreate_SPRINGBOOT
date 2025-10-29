@@ -1,12 +1,12 @@
 package com.example.demo.model.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Service; // 빈 등록
 import com.example.demo.model.domain.TestDB;
 import com.example.demo.model.repository.TestRepository;
 import lombok.RequiredArgsConstructor;
 
-// 서비스 클래스 추가 - Service layer  비지니스 계층
+// 서비스 클래스 추가 - Service layer 비지니스 계층
 // 주요 기능(로직) 작성
 
 @Service // 서비스 등록, 스프링 내부 자동 등록됨

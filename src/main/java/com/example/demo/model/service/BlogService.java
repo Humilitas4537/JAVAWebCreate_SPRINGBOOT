@@ -29,6 +29,7 @@ public class BlogService {
         return blogRepository.save(request.toEntity());
     }
 
+
     public Optional<Article> findById(Long id) { // 게시판 특정 글 조회
         return blogRepository.findById(id);
     }

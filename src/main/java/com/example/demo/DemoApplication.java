@@ -1,4 +1,4 @@
-package com.example.demo; // 현재 폴더 위치
+package com.example.demo; // 현재 폴더 위치, '루트 패키지 경로' 생략(src.main.java)
 
 import org.springframework.boot.SpringApplication; // 스프링 핵심 클래스
 import org.springframework.boot.autoconfigure.SpringBootApplication; // 자동 설정 기능 활성화

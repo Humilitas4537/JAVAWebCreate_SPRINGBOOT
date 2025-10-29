@@ -1,5 +1,5 @@
 // 새로 추가한 이벤트 : '되돌아가기' 버튼 클릭 시 창을 닫을 지 물어봄
-function comfirmClose(){
+function confirmClose(){
     if(confirm("정말로 창을 닫으시겠습니까?")){
         alert("확인 : true값 확인, 1초 후 창을 닫습니다.")
         setTimeout("window.close()",1000);

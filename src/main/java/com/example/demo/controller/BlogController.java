@@ -13,9 +13,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+// 폼 데이터나 쿼리 스트링을 객체로 변수 바인딩
+// RequestParam은 개별 변수로 바인딩
 import org.springframework.web.bind.annotation.PathVariable;
+// 경로 변수를 개별 변수로 바인딩 : /users/{id} → @PathVariable Long id
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+
 
 
 @Controller // 컨트롤러 어노테이션 명시
@@ -30,7 +34,7 @@ public class BlogController {
         model.addAttribute("articles", list); // 모델에 추가
         return "article_list"; // .HTML 연결
     }
-
+    
 
     @PostMapping("/api/articles") // post 요청
     public String addArticle(@ModelAttribute AddArticleRequest request) { // 아직 없음(에러)

@@ -1,9 +1,9 @@
 package com.example.demo.model.domain;
 
-import lombok.*; // 어노테이션 자동 생성
+import lombok.*; // lombok 라이브러리의 모든 어노테이션 자동 생성
 // getter, setter, builder, data 등 어노테이션 사용 가능
 import jakarta.persistence.*; // 기존 javax 후속 버전
-// entity, id, generatedvalue, column 등 어노테이션 사용 가능
+// entity, table, id, generatedvalue, column 등 어노테이션 사용 가능
 
 @Getter // setter는 없음(무분별한 변경 x)
 @Entity // 아래 객체와 DB 테이블을 매핑. JPA가 관리

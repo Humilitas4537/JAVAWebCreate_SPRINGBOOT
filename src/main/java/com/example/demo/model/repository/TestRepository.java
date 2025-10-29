@@ -1,6 +1,7 @@
 package com.example.demo.model.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository; // JPA 필수 등록;
+import org.springframework.data.jpa.repository.JpaRepository; // JPA 필수 등록
+// Jpa를 상속 받아 Jpa가 제공하는 데이터 제어 기능(CRUD)과 Jpa가 이름만 보고 자동으로 메서드를 구현해줌
 import org.springframework.stereotype.Repository; // 빈 등록
 import com.example.demo.model.domain.TestDB; // 도메인 연동
 
