@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 // 경로 변수를 개별 변수로 바인딩 : /users/{id} → @PathVariable Long id
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -56,11 +58,11 @@ public class BlogController {
     }
 
 
-    @PostMapping("/api/articles") // post 요청
-    public String addArticle(@ModelAttribute AddArticleRequest request) { // 아직 없음(에러)
-        blogService.save(request); // 게시글 저장
-        return "redirect:/article_list";
-    }
+    // @PostMapping("/api/articles") // post 요청
+    // public String addArticle(@ModelAttribute AddArticleRequest request) { // 아직 없음(에러)
+    //     blogService.save(request); // 게시글 저장
+    //     return "redirect:/article_list";
+    // }
     
 
     // @GetMapping("/article_edit/{id}") // 게시판 링크 지정
@@ -75,11 +77,32 @@ public class BlogController {
     //         return "article_edit"; // .HTML 연결
     // }
 
-    @PutMapping("/api/article_edit/{id}")
-    public String updateArticle(@PathVariable Long id, @ModelAttribute AddArticleRequest request) {
+    @GetMapping("/board_edit/{id}")
+    public String board_edit(Model model, @PathVariable Long id) {
+        Optional<Board> list = blogService.findById(id);
+        if(list.isPresent()){
+            model.addAttribute("board", list.get());
+        }
+        else{
+            return "redirect:/error_page/article_error";
+        }
+        return "board_edit";
+    }  
+
+    
+    // @PutMapping("/api/article_edit/{id}")
+    // public String updateArticle(@PathVariable Long id, @ModelAttribute AddArticleRequest request) {
+    //     blogService.update(id, request);
+    //     return "redirect:/article_list"; // 글 수정 이후 .html 연결
+    // }
+
+    @PutMapping("/api/board_edit/{id}")
+    public String updateBoard(@PathVariable Long id, @ModelAttribute AddArticleRequest request){
         blogService.update(id, request);
-        return "redirect:/article_list"; // 글 수정 이후 .html 연결
+        return "redirect:/board_list"; // 글 수정 이후 .html 연결
     }
+
+
 
     @DeleteMapping("/api/article_delete/{id}")
     public String deleteArticle(@PathVariable Long id){

@@ -36,22 +36,32 @@ public class BlogService {
     }
 
 
-    public Article save(AddArticleRequest request){
-        // DTO가 없는 경우 이곳에 직접 구현 가능
-        // public ResponseEntity<Article> addArticle(@RequestParam String title, @RequestParam String content) {
-        // Article article = Article.builder()
-        //  .title(title)
-        //  .content(content)
-        //  .build();
-        return blogRepository.save(request.toEntity());
-    }
+    // public Article save(AddArticleRequest request){
+    //     // DTO가 없는 경우 이곳에 직접 구현 가능
+    //     // public ResponseEntity<Article> addArticle(@RequestParam String title, @RequestParam String content) {
+    //     // Article article = Article.builder()
+    //     //  .title(title)
+    //     //  .content(content)
+    //     //  .build();
+    //     return blogRepository.save(request.toEntity());
+    // }
     
 
+    // public void update(Long id, AddArticleRequest request){
+    //     Optional<Article> optionalArticle = blogRepository.findById(id); // 단일 글 조회
+    //     optionalArticle.ifPresent(article -> { // 값이 있으면
+    //         article.update(request.getTitle(), request.getContent()); // 값을 수정
+    //         blogRepository.save(article); // Article 객체에 저장
+    //     });
+    // }
+
     public void update(Long id, AddArticleRequest request){
-        Optional<Article> optionalArticle = blogRepository.findById(id); // 단일 글 조회
-        optionalArticle.ifPresent(article -> { // 값이 있으면
-            article.update(request.getTitle(), request.getContent()); // 값을 수정
-            blogRepository.save(article); // Article 객체에 저장
+        Optional<Board> optionalBoard = blogRepository2.findById(id); // 단일 글 조회
+        optionalBoard.ifPresent(board -> { // 값이 있으면
+            // @ModelAttribute로 request에 변수 바인딩한 폼 데이터는 title과 content 뿐.
+            // 하지만 Board의 update 메서드는 빌드 패턴을 적용하지 않았으므로 모든 매개변수 값을 받아야 함 -> Board의 Getter로 처리
+            board.update(request.getTitle(), request.getContent(), board.getUser(), board.getNewdate(), board.getCount(), board.getLikec());
+            blogRepository2.save(board);
         });
     }
 
