@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.example.demo.model.domain.Article;
 import com.example.demo.model.domain.Board;
@@ -27,6 +29,16 @@ public class BlogService {
         return blogRepository2.findAll();
     }
 
+    public Page<Board> findAll(Pageable pageable) { //PageRequest 객체는 Pageable 인터페이스를 구현한 자식 클래스
+        return blogRepository2.findAll(pageable);
+    }
+
+
+    public Page<Board> searchByKeyword(String keyword, Pageable pageable) {
+        return blogRepository2.findByTitleContainingIgnoreCase(keyword, pageable); // deepL : 제목을 대소문자 구분하지 않고 포함하는 항목 찾기
+    } // LIKE 검색 제공(대소문자 무시)
+
+
     // public Optional<Article> findById(Long id) { // 게시판 특정 글 조회
     //     return blogRepository.findById(id);
     // }
@@ -35,7 +47,7 @@ public class BlogService {
         return blogRepository2.findById(id);
     }
 
-
+    /* Article save : 글 저장
     // public Article save(AddArticleRequest request){
     //     // DTO가 없는 경우 이곳에 직접 구현 가능
     //     // public ResponseEntity<Article> addArticle(@RequestParam String title, @RequestParam String content) {
@@ -45,6 +57,12 @@ public class BlogService {
     //     //  .build();
     //     return blogRepository.save(request.toEntity());
     // }
+    */
+
+    public void save(AddArticleRequest request){
+        // DTO가 없는 경우 이곳에 직접 구현 가능
+        blogRepository2.save(request.toEntity());
+    }
     
 
     // public void update(Long id, AddArticleRequest request){
