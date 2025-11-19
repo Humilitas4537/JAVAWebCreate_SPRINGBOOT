@@ -53,14 +53,18 @@ public class BlogController {
 
     // board 게시판 페이지 - 게시글 Paging
     @GetMapping("/board_list") // 새로운 게시판 링크 지정
+        // 1) 게시글 리스트는 페이징 / 클래스 Page<T>, Pageable - PageRequest
+        // 2) 키워드, 페이지 값 필요 : String keyword, Int page + 처음 들어왔을 때, 디폴트값 필요
     public String board_list(Model model, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "") String keyword) {
-        PageRequest pageable = PageRequest.of(page, 3); // 한 페이지의 게시글 수
+        // 페이지 정보 구현
+        PageRequest pageable = PageRequest.of(page, 3); // Pageable - PageRequest (현재 페이지, 페이지 게시글 수)
         Page<Board> list; // Page를 반환
         if (keyword.isEmpty()) {
             list = blogService.findAll(pageable); // 기본 전체 출력(키워드 x)
         } else {
             list = blogService.searchByKeyword(keyword, pageable); // 키워드로 검색
         }
+        model.addAttribute("startNum", (page * pageable.getPageSize()) + 1);
         model.addAttribute("boards", list); // 모델에 추가
         model.addAttribute("totalPages", list.getTotalPages()); // 페이지 크기
         model.addAttribute("currentPage", page); // 페이지 번호
@@ -68,7 +72,7 @@ public class BlogController {
         return "board_list"; // .HTML 연결
     }
 
-
+    // 게시글 조회
     @GetMapping("/board_view/{id}") // 게시판 링크 지정
     public String board_view(Model model, @PathVariable Long id) {
         Optional<Board> list = blogService.findById(id); // 선택한 게시판 글
@@ -81,16 +85,23 @@ public class BlogController {
         return "board_view"; // .HTML 연결
     }
 
-    // 글쓰기 게시판
+    // 게시판 글쓰기 페이지
     @GetMapping("/board_write")
     public String board_write() {
         return "board_write";
     }
 
+    // 게시판 글 추가
     @PostMapping("/api/boards") // 글쓰기 게시판 저장
     public String addboards(@ModelAttribute AddArticleRequest request) {
         blogService.save(request);
         return "redirect:/board_list"; // .HTML 연결
+    }
+
+    @DeleteMapping("/api/board_delete/{id}")
+    public String board_delete(@PathVariable Long id){
+        blogService.delete(id);
+        return "redirect:/board_list";
     }
 
     /* article 게시판 글 생성

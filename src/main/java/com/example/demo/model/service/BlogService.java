@@ -83,8 +83,11 @@ public class BlogService {
         });
     }
 
-    public void delete(Long id) {
-        blogRepository.deleteById(id);
+    // public void delete(Long id) {
+    //     blogRepository.deleteById(id);
+    // }
+    public void delete(Long id){
+        blogRepository2.deleteById(id);
     }
 }
 
