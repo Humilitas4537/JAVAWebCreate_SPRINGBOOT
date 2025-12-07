@@ -44,15 +44,14 @@
 ### ✅ 연습문제 '게시판 페이지 - 글 수정' 완료
 - <b>New 게시판에 글 수정 기능 추가</b>
 
-
 board_edit 페이지에서 수정 버튼 클릭 시, 게시글 **업데이트** 동작 수행
-```html (board_edit.html)
+```html
 <form th:action="@{/api/board_edit/{id}(id=${board.id})}">
     <input type="hidden" name="_method" value="put">
 </form>
 ```
 게시글 수정 후, 게시판 페이지로 리다이렉트
-```java (BlogController.java)
+```java
     // board 게시글 수정
     @PutMapping("/api/board_edit/{id}")
     public String updateBoard(@PathVariable Long id, @ModelAttribute AddArticleRequest request){
