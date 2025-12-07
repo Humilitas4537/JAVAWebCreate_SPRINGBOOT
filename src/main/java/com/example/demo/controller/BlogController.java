@@ -128,7 +128,7 @@ public class BlogController {
     // }
     */
 
-    /* article 게시판 글 수정
+    /* article 게시글 수정 페이지 이동
     // @GetMapping("/article_edit/{id}") // 게시판 링크 지정
     // public String article_edit(Model model, @PathVariable Long id) {
     //     Optional<Article> list = blogService.findById(id); // 선택한 게시판 글
@@ -142,6 +142,15 @@ public class BlogController {
     // }
     */
 
+    /* article 게시글 수정
+    // @PutMapping("/api/article_edit/{id}")
+    // public String updateArticle(@PathVariable Long id, @ModelAttribute AddArticleRequest request) {
+    //     blogService.update(id, request);
+    //     return "redirect:/article_list"; // 글 수정 이후 .html 연결
+    // }
+    */
+
+    // board 게시글 수정 페이지 이동
     @GetMapping("/board_edit/{id}")
     public String board_edit(Model model, @PathVariable Long id) {
         Optional<Board> list = blogService.findById(id);
@@ -149,32 +158,22 @@ public class BlogController {
             model.addAttribute("board", list.get());
         }
         else{
-            return "redirect:/error_page/article_error";
+            return "/error_page/article_error";
         }
         return "board_edit";
-    }  
-
-    
-    // @PutMapping("/api/article_edit/{id}")
-    // public String updateArticle(@PathVariable Long id, @ModelAttribute AddArticleRequest request) {
-    //     blogService.update(id, request);
-    //     return "redirect:/article_list"; // 글 수정 이후 .html 연결
-    // }
-
+    }
+    // board 게시글 수정
     @PutMapping("/api/board_edit/{id}")
     public String updateBoard(@PathVariable Long id, @ModelAttribute AddArticleRequest request){
         blogService.update(id, request);
         return "redirect:/board_list"; // 글 수정 이후 .html 연결
     }
 
-
-
     @DeleteMapping("/api/article_delete/{id}")
     public String deleteArticle(@PathVariable Long id){
         blogService.delete(id);
         return "redirect:/article_list";
     }
-
 
     @GetMapping("/favicon.ico")
     public void favicon() {

@@ -33,7 +33,6 @@ public class BlogService {
         return blogRepository2.findAll(pageable);
     }
 
-
     public Page<Board> searchByKeyword(String keyword, Pageable pageable) {
         return blogRepository2.findByTitleContainingIgnoreCase(keyword, pageable); // deepL : 제목을 대소문자 구분하지 않고 포함하는 항목 찾기
     } // LIKE 검색 제공(대소문자 무시)
@@ -42,7 +41,6 @@ public class BlogService {
     // public Optional<Article> findById(Long id) { // 게시판 특정 글 조회
     //     return blogRepository.findById(id);
     // }
-
     public Optional<Board> findById(Long id) { // 게시판 특정 글 조회
         return blogRepository2.findById(id);
     }
@@ -72,7 +70,6 @@ public class BlogService {
     //         blogRepository.save(article); // Article 객체에 저장
     //     });
     // }
-
     public void update(Long id, AddArticleRequest request){
         Optional<Board> optionalBoard = blogRepository2.findById(id); // 단일 글 조회
         optionalBoard.ifPresent(board -> { // 값이 있으면

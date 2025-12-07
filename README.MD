@@ -42,7 +42,34 @@
 - 포트폴리오 페이지 프로젝트 항목 수정
 - New 게시판 페이지 및 DB("Board") 생성
 ### ✅ 연습문제 '게시판 페이지 - 글 수정' 완료
-- New 게시판에 글 수정 기능 추가
+- <b>New 게시판에 글 수정 기능 추가</b>
+
+
+board_edit 페이지에서 수정 버튼 클릭 시, 게시글 **업데이트** 동작 수행
+```html (board_edit.html)
+<form th:action="@{/api/board_edit/{id}(id=${board.id})}">
+    <input type="hidden" name="_method" value="put">
+</form>
+```
+게시글 수정 후, 게시판 페이지로 리다이렉트
+```java (BlogController.java)
+    // board 게시글 수정
+    @PutMapping("/api/board_edit/{id}")
+    public String updateBoard(@PathVariable Long id, @ModelAttribute AddArticleRequest request){
+        blogService.update(id, request);
+        return "redirect:/board_list"; // 글 수정 이후 .html 연결
+    }
+
+    public void update(Long id, AddArticleRequest request){
+        Optional<Board> optionalBoard = blogRepository2.findById(id); // 단일 글 조회
+        optionalBoard.ifPresent(board -> { // 값이 있으면
+            // @ModelAttribute로 request에 변수 바인딩한 폼 데이터는 title과 content 뿐.
+            // 하지만 Board의 update 메서드는 빌드 패턴을 적용하지 않았으므로 모든 매개변수 값을 받아야 함 -> Board의 Getter로 처리
+            board.update(request.getTitle(), request.getContent(), board.getUser(), board.getNewdate(), board.getCount(), board.getLikec());
+            blogRepository2.save(board);
+        });
+    }
+```
 
 ## 📘 8주차 자바웹 개발
 ### :white_check_mark: 게시판 페이지 기능 추가
