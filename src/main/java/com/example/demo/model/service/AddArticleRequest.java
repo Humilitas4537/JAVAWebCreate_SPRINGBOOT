@@ -32,5 +32,4 @@ public class AddArticleRequest{
             .likec(likec)
             .build();
     }
-    
 }

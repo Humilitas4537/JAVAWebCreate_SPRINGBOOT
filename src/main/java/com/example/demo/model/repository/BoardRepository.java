@@ -13,7 +13,7 @@ public interface BoardRepository extends JpaRepository<Board, Long>{
 
     Page<Board> findByTitleContainingIgnoreCase(String title, Pageable pageable);
     // findBy : select 
-    // Title : Board 엔티티의 title 필드
+    // Title : Board 엔티티의 title 필드 - 매개변수 title과 매칭
     // Containing : Like "%title%"
     // IgnoreCase : 대소문자 구분 안함
 }

@@ -17,6 +17,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 @Controller // 컨트롤러 어노테이션 명시
 public class MemberController {
@@ -31,8 +32,8 @@ public class MemberController {
     }
 
     // 회원가입 정보 저장
-    @PostMapping("/api/members")
-    public String addmembers(@ModelAttribute AddMemberRequest request) {
+    @PostMapping("/api/members") // @Valid : DTO(request)에 붙어있는 Validation 어노테이션 검사
+    public String addmembers(@Valid @ModelAttribute AddMemberRequest request) {
         memberService.saveMember(request);
         return "join_end"; // .HTML 연결
     }

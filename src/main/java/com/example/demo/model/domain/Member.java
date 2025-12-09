@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 // 회원가입은 DTO request.toEntity()로 'builder 생성자'로 DB에 데이터를 저장하므로 Error 없음
 // 하지만 로그인은 findByEmail()로 Member를 반환, JPA는 리플렉션으로 DB 데이터를 엔티티로 생성하는데 '기본생성자'가 없어서 Error 발생
 // 그런데 기본생성자로 인자를 받지 않은 채 어떻게 DB 데이터를 엔티티에 담을까? -> 리플렉션 : 필드에 직접 접근해 값 저장, 따라서 Builder, 인자있는 생성자가 아닌 기본생성자만 필요
-// Builder가 없다면 암묵적 기본생성자로 로그인 가능(대신 회원가입때 에러), Builder가 있으므로 기본생성자는 사라지므로 직접 @NoArgsConstructor 필요!!
+// Builder가 없다면 암묵적 기본생성자로 로그인 가능(대신 회원가입때 에러), Builder가 있으므로 기본생성자는 사라졌으니 직접 @NoArgsConstructor 필요!!
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 기본 키 1씩 증가

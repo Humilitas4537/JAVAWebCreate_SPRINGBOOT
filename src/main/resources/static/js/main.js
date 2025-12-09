@@ -2,6 +2,7 @@
 function confirmClose(){
     if(confirm("정말로 창을 닫으시겠습니까?")){
         alert("확인 : true값 확인, 1초 후 창을 닫습니다.")
+        // setTimeout(window.close,1000);
         setTimeout("window.close()",1000);
     }
     else{

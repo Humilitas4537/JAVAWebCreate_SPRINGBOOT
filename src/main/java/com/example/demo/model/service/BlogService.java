@@ -56,7 +56,6 @@ public class BlogService {
     //     return blogRepository.save(request.toEntity());
     // }
     */
-
     public void save(AddArticleRequest request){
         // DTO가 없는 경우 이곳에 직접 구현 가능
         blogRepository2.save(request.toEntity());

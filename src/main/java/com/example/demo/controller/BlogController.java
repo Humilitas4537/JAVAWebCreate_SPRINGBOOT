@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -56,10 +57,11 @@ public class BlogController {
 
     // board 게시판 페이지 - 게시글 Paging
     @GetMapping("/board_list") // 새로운 게시판 링크 지정
-        // 1) 게시글 리스트는 페이징 / 클래스 Page<T>, Pageable - PageRequest
-        // 2) 키워드, 페이지 값 필요 : String keyword, Int page + 처음 들어왔을 때, 디폴트값 필요
+    // 1) 게시글 리스트는 페이징 / 클래스 Page<T>, Pageable - PageRequest
+    // 2) 키워드, 페이지 값 필요 : String keyword, Int page + 처음 들어왔을 때, 디폴트값 필요
     public String board_list(
-        Model model, 
+        Model model,
+        // @RequestParam -> 자동 타입변환
         @RequestParam(defaultValue = "0") int page, 
         @RequestParam(defaultValue = "") String keyword,
         HttpSession session) // 세션 객체 전달
@@ -72,7 +74,7 @@ public class BlogController {
         System.out.println("세션 userId: " + userId);
 
         // 페이지 정보 구현
-        PageRequest pageable = PageRequest.of(page, 3); // Pageable - PageRequest (현재 페이지, 페이지 게시글 수)
+        PageRequest pageable = PageRequest.of(page, 3); // Pageable - (구현체)PageRequest.of(현재 페이지, 페이지 게시글 수)
         Page<Board> list; // Page를 반환
         if (keyword.isEmpty()) {
             list = blogService.findAll(pageable); // 기본 전체 출력(키워드 x)
@@ -82,7 +84,7 @@ public class BlogController {
         model.addAttribute("email", email); // 로그인 사용자(이메일)
         model.addAttribute("startNum", (page * pageable.getPageSize()) + 1);
         model.addAttribute("boards", list); // 모델에 추가
-        model.addAttribute("totalPages", list.getTotalPages()); // 페이지 크기
+        model.addAttribute("totalPages", list.getTotalPages()); // 전체 페이지 수
         model.addAttribute("currentPage", page); // 페이지 번호
         model.addAttribute("keyword", keyword); // 키워드
         return "board_list"; // .HTML 연결
@@ -105,13 +107,6 @@ public class BlogController {
     @GetMapping("/board_write")
     public String board_write() {
         return "board_write";
-    }
-
-    // 게시판 글 추가
-    @PostMapping("/api/boards") // 글쓰기 게시판 저장
-    public String addboards(@ModelAttribute AddArticleRequest request) {
-        blogService.save(request);
-        return "redirect:/board_list"; // .HTML 연결
     }
 
     @DeleteMapping("/api/board_delete/{id}")
@@ -150,6 +145,12 @@ public class BlogController {
     // }
     */
 
+    // board 게시판 글 추가
+    @PostMapping("/api/boards") // 글쓰기 게시판 저장
+    public String addboards(@ModelAttribute AddArticleRequest request) {
+        blogService.save(request);
+        return "redirect:/board_list"; // .HTML 연결
+    }
     // board 게시글 수정 페이지 이동
     @GetMapping("/board_edit/{id}")
     public String board_edit(Model model, @PathVariable Long id) {
