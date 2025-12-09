@@ -63,11 +63,12 @@ public class MemberController {
             }
             session = request2.getSession(true); // 새로운 세션 생성
             
+            // 로그인 체크
             Member member = memberService.loginCheck(request.getEmail(), request.getPassword()); // 패스워드 반환
             
+            // 서버의 세션 저장소에 저장 / JSESSIONID: 쿠키와 세션 저장소에 저장
             String sessionId = UUID.randomUUID().toString(); // 임의의 고유 ID로 세션 생성
             session.setAttribute("userId", sessionId); // 아이디 이름 설정
-
             String email = request.getEmail(); // 이메일 얻기
             session.setAttribute("email", email);
 

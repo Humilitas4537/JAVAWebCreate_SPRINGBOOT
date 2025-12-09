@@ -2,9 +2,12 @@ package com.example.demo.controller;
 
 import com.example.demo.model.domain.Article;
 import com.example.demo.model.domain.Board;
+import com.example.demo.model.domain.Member;
+import com.example.demo.model.repository.MemberRepository;
 import com.example.demo.model.service.BlogService;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 import com.example.demo.model.service.AddArticleRequest;
 
@@ -30,12 +33,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 
-
+@RequiredArgsConstructor
 @Controller // 컨트롤러 어노테이션 명시
 public class BlogController {
     // 클래스 하단 작성
     @Autowired
     BlogService blogService; // DemoController 클래스 아래 객체 생성
+
+    private final MemberRepository memberRepository;
 
     /* article 게시판 페이지
     // @GetMapping("/article_list") // 게시판 링크 지정
@@ -66,6 +71,7 @@ public class BlogController {
         @RequestParam(defaultValue = "") String keyword,
         HttpSession session) // 세션 객체 전달
     {
+        // Object 타입으로 반환되므로 타입 캐스팅
         String userId = (String) session.getAttribute("userId"); // 세션 아이디 존재 확인
         String email = (String) session.getAttribute("email"); // 세션에서 이메일 확인
         if (userId == null) {
@@ -92,13 +98,19 @@ public class BlogController {
 
     // 게시글 조회
     @GetMapping("/board_view/{id}") // 게시판 링크 지정
-    public String board_view(Model model, @PathVariable Long id) {
+    public String board_view(Model model, @PathVariable Long id, HttpSession session) {
         Optional<Board> list = blogService.findById(id); // 선택한 게시판 글
         if (list.isPresent()) {
             model.addAttribute("boards", list.get()); // 존재할 경우 실제 Board 객체를 모델에 추가
         } else {
         // 처리할 로직 추가 (예: 오류 페이지로 리다이렉트, 예외 처리 등)
             return "/error_page/article_error"; // 오류 처리 페이지로 연결
+        }
+
+        String email = (String) session.getAttribute("email");
+        Member member = memberRepository.findByEmail(email);
+        if(list.get().getUser().equals(member.getName())){
+            model.addAttribute("user", true);
         }
         return "board_view"; // .HTML 연결
     }
@@ -147,7 +159,10 @@ public class BlogController {
 
     // board 게시판 글 추가
     @PostMapping("/api/boards") // 글쓰기 게시판 저장
-    public String addboards(@ModelAttribute AddArticleRequest request) {
+    public String addboards(@ModelAttribute AddArticleRequest request, HttpSession session) {
+        String email = (String) session.getAttribute("email");
+        Member member = memberRepository.findByEmail(email);
+        request.setUser(member.getName());;
         blogService.save(request);
         return "redirect:/board_list"; // .HTML 연결
     }

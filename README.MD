@@ -298,8 +298,53 @@ public class MemberService {
 
 ## 📘 10주차 자바웹 개발
 ### :white_check_mark: 세션 쿠키와 로그아웃 기능 추가
-- 게시판 접근 시 로그인 상태 확인 -> 세션 userId 조회
-- 로그아웃 시 기존 세션 userId 삭제
+- 로그인 시 세션 저장소에 userID, email 생성
+- securityConfig 보안 관리 클래스에 HttpSecurity 보안 설정 추가
+- 로그인, 로그아웃 시 기존 세션 무효화 -> 세션 저장소와 세션 쿠키 JSESSIONID 삭제
+
+### ✅ 연습문제 '게시판 수정하기' 완료
+- **현재 로그인한 사용자로 글 작성자 저장**
+
+실제 글 작성 로직에서 회원의 이름 정보를 가져와 게시글 DTO 수정
+```java
+// board 게시판 글 추가
+@PostMapping("/api/boards") // 글쓰기 게시판 저장
+public String addboards(@ModelAttribute AddArticleRequest request, HttpSession session) {
+    String email = (String) session.getAttribute("email");
+    Member member = memberRepository.findByEmail(email);
+    request.setUser(member.getName());;
+    blogService.save(request);
+    return "redirect:/board_list"; // .HTML 연결
+}
+```
+- **글 작성자만 board_view/{id} 에서 수정/삭제 버튼 접근 가능**
+
+== : 참조값 비교
+Board, Member의 실제 문자열 값 비교는 equals() 활용
+```java
+// 게시글 조회
+@GetMapping("/board_view/{id}") // 게시판 링크 지정
+public String board_view(Model model, @PathVariable Long id, HttpSession session) {
+    Optional<Board> list = blogService.findById(id); // 선택한 게시판 글
+    if (list.isPresent()) {
+        model.addAttribute("boards", list.get()); // 존재할 경우 실제 Board 객체를 모델에 추가
+    } else {
+    // 처리할 로직 추가 (예: 오류 페이지로 리다이렉트, 예외 처리 등)
+        return "/error_page/article_error"; // 오류 처리 페이지로 연결
+    }
+
+    // 수정, 삭제 버튼 노출 결정
+    String email = (String) session.getAttribute("email");
+    Member member = memberRepository.findByEmail(email);
+    if(list.get().getUser().equals(member.getName())){
+        model.addAttribute("user", true);
+    }
+    return "board_view"; // .HTML 연결
+}
+```
+```html
+<tr th:each="board : ${boards}" th:if="${user}">
+```
 
 ## 📘 11주차 자바웹 개발
 ### :white_check_mark: 프로필 메일 업로드 기능 추가
