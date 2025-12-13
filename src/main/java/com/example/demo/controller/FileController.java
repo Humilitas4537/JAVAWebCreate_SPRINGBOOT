@@ -58,6 +58,11 @@ public class FileController {
 
             String sanitizedEmail = email.replaceAll("[^a-zA-Z0-9]", "_");
             Path filePath = uploadPath.resolve(sanitizedEmail + ".txt"); // 업로드 폴더에 .txt 이름 설정
+            int count = 1;
+            while (Files.exists(filePath)) {
+                filePath = uploadPath.resolve(sanitizedEmail + "(" + count + ")" + ".txt");
+                count ++;
+            }
             System.out.println("File path: " + filePath); // 디버깅용 출력
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath.toFile()))) {
@@ -71,9 +76,9 @@ public class FileController {
             redirectAttributes.addFlashAttribute("message", "메일 내용이 성공적으로 업로드되었습니다!");
 
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // 콘솔에 에러 로그 출력
             redirectAttributes.addFlashAttribute("message", "업로드 중 오류가 발생했습니다.");
-            return "/error_page/article_error"; // 오류 처리 페이지로 연결
+            return "/error_page/file_error"; // 오류 처리 페이지로 연결
         }
             
         return "upload_end"; // .html 파일 연동

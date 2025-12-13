@@ -319,8 +319,8 @@ public String addboards(@ModelAttribute AddArticleRequest request, HttpSession s
 ```
 - **글 작성자만 board_view/{id} 에서 수정/삭제 버튼 접근 가능**
 
+Board, Member의 실제 문자열 값 비교는 equals() 활용<br>
 == : 참조값 비교
-Board, Member의 실제 문자열 값 비교는 equals() 활용
 ```java
 // 게시글 조회
 @GetMapping("/board_view/{id}") // 게시판 링크 지정
@@ -350,3 +350,182 @@ public String board_view(Model model, @PathVariable Long id, HttpSession session
 ### :white_check_mark: 프로필 메일 업로드 기능 추가
 - 메일 기능 -> .txt 파일로 vscode에 생성
 - 기본 지도 위치 수정
+### ✅ 연습문제 '세션 처리, 파일 업로드' 완료
+- **다중 로그인 / 로그아웃 완벽 구현**
+
+**문제 :** 같은 브라우저로 세션ID 쿠키 공유 -> 서버 세션 저장소 내 같은 세션 사용<br>
+따라서 새 탭에서 로그인 시 기존 로그인 정보는 새 사용자로 덮어씌워짐 : 단일 사용자 로그인<br>
+
+**해결 :** 같은 세션 내에서 사용자별 개별 세션 공간 추가 구현 -> 다중 사용자 완벽 구현<br>
+모든 요청에 개별 세션을 구별하기 위한 sId(sessionId) 추가 & 사용자 식별<br>
+같은 브라우저에서 개별 탭에 로그인된 두개 이상의 계정은 개별적으로 글 추가, 조회, 수정, 삭제 가능<br>
+로그아웃 시 세션에서 로그아웃 사용자 세션 공간만 삭제, But 쿠키까지 일괄 삭제되므로 다중 사용자 일괄 로그아웃
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/9bdb8fd2-91c6-4d7e-bca8-212db9417821"  width="80%" height="80%"/>
+</p>
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/9e84f6f0-e57b-444f-81de-1d424b441532"  width="80%" height="80%"/>
+</p>
+
+**요약**
+```java
+@PostMapping("/api/login_check")
+public String checkMembers(
+    @ModelAttribute AddMemberRequest request,
+    Model model,
+    HttpServletRequest request2, 
+    HttpServletResponse response) 
+{
+    HttpSession session = request2.getSession(true); // 새로운 세션 생성
+                
+    // 로그인 체크
+    Member member = memberService.loginCheck(request.getEmail(), request.getPassword()); // 패스워드 반환
+
+    // 서버의 세션 저장소에 저장 / JSESSIONID: 쿠키와 세션 저장소에 저장하여 매 요청 마다 사용자 세션 식별
+    String sessionId = UUID.randomUUID().toString(); // 임의의 고유 ID로 세션 생성
+    Map<String, Object> memberSession = Map.of(
+        "email", member.getEmail()
+    );
+    session.setAttribute("userId_" + sessionId, memberSession); // 사용자 세션 식별
+    return "redirect:/board_list?sId=" + sessionId; // 로그인 성공 후 이동할 페이지
+}
+
+@GetMapping("/api/logout/{sId}") // 로그아웃 버튼 동작
+public String member_logout(Model model, HttpServletRequest request2, HttpServletResponse response, @PathVariable String sId) {
+    HttpSession session = request2.getSession(false); // 기존 세션 가져오기(존재하지 않으면 null 반환)
+    session.removeAttribute("userId_" + sId); 
+    
+    Cookie cookie = new Cookie("JSESSIONID", null); // 기본 이름은 JSESSIONID
+    cookie.setPath("/"); // 쿠키의 경로
+    cookie.setMaxAge(0); // 쿠키 만료 0이면 삭제
+    response.addCookie(cookie); // 응답에 쿠키 설정
+
+    System.out.println("세션 userId_" + sId + " :"); // 초기화 후 IDE 터미널에 세션 값 출력
+    System.out.println(session.getAttribute("userId_" + sId));
+    
+    return "login"; // 로그인 페이지로 리다이렉트
+}
+```
+기존 Java 코드 및 html 태그 모두 수정<br>
+현재 요청의 사용자를 식별 & 사용자별 세션ID에 접근할 수 있도록 경로변수 또는 쿼리스트링으로 sId(sessionId) 전달
+```java
+@GetMapping("/board_list") // 새로운 게시판 링크 지정
+// 1) 게시글 리스트는 페이징 / 클래스 Page<T>, Pageable - PageRequest
+// 2) 키워드, 페이지 값 필요 : String keyword, Int page + 처음 들어왔을 때, 디폴트값 필요
+public String board_list(
+    Model model,
+    @RequestParam(name = "sId", defaultValue = "") String sessionId,
+    HttpSession session) // 세션 객체 전달
+{
+    // Object 타입으로 반환되므로 타입 캐스팅
+    Map<String, Object> memberSession = (Map<String, Object>) session.getAttribute("userId_" + sessionId); // 세션 아이디 존재 확인
+    if (memberSession == null) {
+        return "redirect:/member_login"; // 로그인 페이지로 리다이렉션
+    }
+    String email = (String) memberSession.get("email"); // 세션에서 사용자 식별 후 사용자 정보에서 가져옴
+
+    System.out.println("세션 userId_" + sessionId + " :");
+    System.out.println(memberSession);
+    model.addAttribute("sessionId", sessionId);
+    return "board_list"; // .HTML 연결
+}
+```
+```html
+<!-- 글 추가 -->
+<a class="btn btn-warning" th:href="@{/board_write(sId=${sessionId})}">글쓰기</a>
+<!-- 글 조회 -->
+<a th:href="@{/board_view/{id}(id=${board.id}, sId=${sessionId})}">
+<!-- 페이지 링크 -->
+<a class="page-link" th:href="@{/board_list(page=${i}, keyword=${keyword}, sId=${sessionId})}" th:text="${i + 1}">1</a>
+```
+10주차 연습문제 수정
+```java
+// board 게시판 글 추가
+@PostMapping("/api/boards/{sId}") // 글쓰기 게시판 저장
+public String addboards(@ModelAttribute AddArticleRequest request, @PathVariable("sId") String sessionId, HttpSession session) {
+    // 세션에서 사용자 식별
+    Map<String, Object> memberSession = (Map<String, Object>) session.getAttribute("userId_" + sessionId);
+    String email = (String) memberSession.get("email");
+    Member member = memberRepository.findByEmail(email);
+    // DTO 작성자를 사용자 이름으로 변경
+    request.setUser(member.getName());
+    blogService.save(request);
+    return "redirect:/board_list?sId=" + sessionId; // .HTML 연결
+}
+
+// 게시글 조회
+@GetMapping("/board_view/{id}") // 게시판 링크 지정
+public String board_view(Model model, @PathVariable Long id, HttpSession session, @RequestParam("sId") String sessionId) {
+    Optional<Board> list = blogService.findById(id); // 선택한 게시판 글
+    if (list.isPresent()) {
+        model.addAttribute("boards", list.get()); // 존재할 경우 실제 Board 객체를 모델에 추가
+    } else {
+    // 처리할 로직 추가 (예: 오류 페이지로 리다이렉트, 예외 처리 등)
+        return "/error_page/article_error"; // 오류 처리 페이지로 연결
+    }
+
+    // 사용자 세션 식별
+    Map<String, Object> memberSession = (Map<String, Object>) session.getAttribute("userId_" + sessionId);
+    String email = (String) memberSession.get("email");
+    Member member = memberRepository.findByEmail(email);
+    
+    if(list.get().getUser().equals(member.getName())){
+        model.addAttribute("user", true);
+        model.addAttribute("sessionId", sessionId);
+    }
+    return "board_view"; // .HTML 연결
+}
+```
+
+- **파일 중복 시 파일 이름 자동 변경 및 에러 페이지 처리**
+
+While 문을 통해 중복 파일이 있는지 확인하고 파일 이름을 변경
+```java
+String sanitizedEmail = email.replaceAll("[^a-zA-Z0-9]", "_");
+Path filePath = uploadPath.resolve(sanitizedEmail + ".txt"); // 업로드 폴더에 .txt 이름 설정
+int count = 1;
+while (Files.exists(filePath)) {
+    filePath = uploadPath.resolve(sanitizedEmail + "(" + count + ")" + ".txt");
+    count ++;
+}
+```
+파일 업로드 에러 페이지 구현
+```java
+catch (IOException e) {
+    e.printStackTrace(); // 콘솔에 에러 로그 출력
+    redirectAttributes.addFlashAttribute("message", "업로드 중 오류가 발생했습니다.");
+    return "/error_page/file_error"; // 오류 처리 페이지로 연결
+}
+```
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>블로그 게시판</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+    <h1 class="mt-5 text-danger">블로그 게시판 - 잘못된 접근</h1>
+    <!-- 오류 메시지 -->
+    <div class="alert alert-danger mt-4" role="alert">
+    <h4 class="alert-heading">잘못된 접근입니다!</h4>
+    <p th:text="message"></p>
+    <hr>
+    <p class="mb-0">이전 페이지로 돌아가시려면 아래 버튼을 클릭해주세요.</p>
+    </div>
+    <!-- 이전 페이지로 돌아가는 버튼 -->
+    <div class="mt-4">
+    <a href="javascript:history.back()" class="btn btn-primary">이전 페이지로</a>
+    </div>
+    </div>
+</body>
+</html>
+```
+
+## ✅ 최종 확인
+### 모든 주차 수업 내용 완료 ✅
+### 모든 주차 연습문제 해결 완료 ✅
+### 포트폴리오 페이지 이미지, 내용 추가 완료 ✅

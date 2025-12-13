@@ -14,7 +14,7 @@
             <!-- 게시글 추가 폼 -->
             <div class="mt-4">
                 <h2>게시글 추가(제목과 내용 입력)</h2>
-                <form th:action="@{/api/boards}" method="post" name="content">
+                <form th:action="@{/api/boards/{sId}(sId=${sessionId})}" method="post" name="content">
                     <div class="form-group">
                         <label for="title">제목:</label>
                         <input type="text" class="form-control" id="title" name="title" required>

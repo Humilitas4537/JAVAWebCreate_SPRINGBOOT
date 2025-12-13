@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import com.example.demo.model.service.AddArticleRequest;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,15 +43,6 @@ public class BlogController {
 
     private final MemberRepository memberRepository;
 
-    /* article 게시판 페이지
-    // @GetMapping("/article_list") // 게시판 링크 지정
-    // public String article_list(Model model) {
-    //     List<Article> list = blogService.findAll(); // 게시판 리스트
-    //     model.addAttribute("articles", list); // 모델에 추가
-    //     return "article_list"; // .HTML 연결
-    // }   
-    */
-
     /* board 게시판 페이지 - 모든 게시글 목록
     // @GetMapping("/board_list") // 새로운 게시판 링크 지정
     // public String board_list(Model model) {
@@ -69,15 +61,18 @@ public class BlogController {
         // @RequestParam -> 자동 타입변환
         @RequestParam(defaultValue = "0") int page, 
         @RequestParam(defaultValue = "") String keyword,
+        @RequestParam(name = "sId", defaultValue = "") String sessionId,
         HttpSession session) // 세션 객체 전달
     {
         // Object 타입으로 반환되므로 타입 캐스팅
-        String userId = (String) session.getAttribute("userId"); // 세션 아이디 존재 확인
-        String email = (String) session.getAttribute("email"); // 세션에서 이메일 확인
-        if (userId == null) {
+        Map<String, Object> memberSession = (Map<String, Object>) session.getAttribute("userId_" + sessionId); // 세션 아이디 존재 확인
+        if (memberSession == null) {
             return "redirect:/member_login"; // 로그인 페이지로 리다이렉션
         }
-        System.out.println("세션 userId: " + userId);
+        String email = (String) memberSession.get("email"); // 세션에서 사용자 식별 후 사용자 정보에서 가져옴
+
+        System.out.println("세션 userId_" + sessionId + " :");
+        System.out.println(memberSession);
 
         // 페이지 정보 구현
         PageRequest pageable = PageRequest.of(page, 3); // Pageable - (구현체)PageRequest.of(현재 페이지, 페이지 게시글 수)
@@ -87,6 +82,7 @@ public class BlogController {
         } else {
             list = blogService.searchByKeyword(keyword, pageable); // 키워드로 검색
         }
+        model.addAttribute("sessionId", sessionId);
         model.addAttribute("email", email); // 로그인 사용자(이메일)
         model.addAttribute("startNum", (page * pageable.getPageSize()) + 1);
         model.addAttribute("boards", list); // 모델에 추가
@@ -96,9 +92,30 @@ public class BlogController {
         return "board_list"; // .HTML 연결
     }
 
+    // 게시판 글쓰기 페이지
+    @GetMapping("/board_write")
+    public String board_write(Model model, @RequestParam("sId") String sessionId) {
+        // 세션에서 사용자 식별
+        model.addAttribute("sessionId", sessionId);      
+        return "board_write";
+    }
+
+    // board 게시판 글 추가
+    @PostMapping("/api/boards/{sId}") // 글쓰기 게시판 저장
+    public String addboards(@ModelAttribute AddArticleRequest request, @PathVariable("sId") String sessionId, HttpSession session) {
+        // 세션에서 사용자 식별
+        Map<String, Object> memberSession = (Map<String, Object>) session.getAttribute("userId_" + sessionId);
+        String email = (String) memberSession.get("email");
+        Member member = memberRepository.findByEmail(email);
+        // DTO 작성자를 사용자 이름으로 변경
+        request.setUser(member.getName());
+        blogService.save(request);
+        return "redirect:/board_list?sId=" + sessionId; // .HTML 연결
+    }
+
     // 게시글 조회
     @GetMapping("/board_view/{id}") // 게시판 링크 지정
-    public String board_view(Model model, @PathVariable Long id, HttpSession session) {
+    public String board_view(Model model, @PathVariable Long id, HttpSession session, @RequestParam("sId") String sessionId) {
         Optional<Board> list = blogService.findById(id); // 선택한 게시판 글
         if (list.isPresent()) {
             model.addAttribute("boards", list.get()); // 존재할 경우 실제 Board 객체를 모델에 추가
@@ -107,25 +124,54 @@ public class BlogController {
             return "/error_page/article_error"; // 오류 처리 페이지로 연결
         }
 
-        String email = (String) session.getAttribute("email");
+        // 사용자 세션 식별
+        Map<String, Object> memberSession = (Map<String, Object>) session.getAttribute("userId_" + sessionId);
+        String email = (String) memberSession.get("email");
         Member member = memberRepository.findByEmail(email);
+        
         if(list.get().getUser().equals(member.getName())){
             model.addAttribute("user", true);
+            model.addAttribute("sessionId", sessionId);
         }
         return "board_view"; // .HTML 연결
     }
 
-    // 게시판 글쓰기 페이지
-    @GetMapping("/board_write")
-    public String board_write() {
-        return "board_write";
+    // board 게시글 수정 페이지 이동
+    @GetMapping("/board_edit/{id}")
+    public String board_edit(Model model, @PathVariable Long id, @RequestParam("sId") String sessionId) {
+        Optional<Board> list = blogService.findById(id);
+        if(list.isPresent()){
+            model.addAttribute("board", list.get());
+        }
+        else{
+            return "/error_page/article_error";
+        } 
+        model.addAttribute("sessionId", sessionId);
+        return "board_edit";
     }
 
-    @DeleteMapping("/api/board_delete/{id}")
-    public String board_delete(@PathVariable Long id){
-        blogService.delete(id);
-        return "redirect:/board_list";
+    // board 게시글 수정
+    @PutMapping("/api/board_edit/{id}/{sId}")
+    public String updateBoard(@PathVariable Long id, @PathVariable("sId") String sessionId, @ModelAttribute AddArticleRequest request){
+        blogService.update(id, request);
+        return "redirect:/board_list?sId=" + sessionId; // 글 수정 이후 .html 연결
     }
+
+    // board 게시글 삭제
+    @DeleteMapping("/api/board_delete/{id}/{sId}")
+    public String board_delete(@PathVariable Long id, @PathVariable("sId") String sessionId){
+        blogService.delete(id);
+        return "redirect:/board_list?sId=" + sessionId;
+    }
+
+    /* article 게시판 페이지
+    // @GetMapping("/article_list") // 게시판 링크 지정
+    // public String article_list(Model model) {
+    //     List<Article> list = blogService.findAll(); // 게시판 리스트
+    //     model.addAttribute("articles", list); // 모델에 추가
+    //     return "article_list"; // .HTML 연결
+    // }   
+    */
 
     /* article 게시판 글 생성
     // @PostMapping("/api/articles") // post 요청
@@ -157,39 +203,13 @@ public class BlogController {
     // }
     */
 
-    // board 게시판 글 추가
-    @PostMapping("/api/boards") // 글쓰기 게시판 저장
-    public String addboards(@ModelAttribute AddArticleRequest request, HttpSession session) {
-        String email = (String) session.getAttribute("email");
-        Member member = memberRepository.findByEmail(email);
-        request.setUser(member.getName());;
-        blogService.save(request);
-        return "redirect:/board_list"; // .HTML 연결
-    }
-    // board 게시글 수정 페이지 이동
-    @GetMapping("/board_edit/{id}")
-    public String board_edit(Model model, @PathVariable Long id) {
-        Optional<Board> list = blogService.findById(id);
-        if(list.isPresent()){
-            model.addAttribute("board", list.get());
-        }
-        else{
-            return "/error_page/article_error";
-        }
-        return "board_edit";
-    }
-    // board 게시글 수정
-    @PutMapping("/api/board_edit/{id}")
-    public String updateBoard(@PathVariable Long id, @ModelAttribute AddArticleRequest request){
-        blogService.update(id, request);
-        return "redirect:/board_list"; // 글 수정 이후 .html 연결
-    }
-
+    /* article 게시판 글 삭제
     @DeleteMapping("/api/article_delete/{id}")
     public String deleteArticle(@PathVariable Long id){
         blogService.delete(id);
         return "redirect:/article_list";
     }
+    */
 
     @GetMapping("/favicon.ico")
     public void favicon() {
