@@ -354,12 +354,47 @@ public String board_view(Model model, @PathVariable Long id, HttpSession session
 - **다중 로그인 / 로그아웃 완벽 구현**
 
 **문제 :** 같은 브라우저로 세션ID 쿠키 공유 -> 서버 세션 저장소 내 같은 세션 사용<br>
-따라서 새 탭에서 로그인 시 기존 로그인 정보는 새 사용자로 덮어씌워짐 : 단일 사용자 로그인<br>
+로그인을 할 때마다 세션에 저장되는 userId, email 매번 갱신됨<br>
+또한 로그인, 로그아웃을 할 때마다 기존 세션을 무효화시킴 .invalidate()<br>
 
-**해결 :** 같은 세션 내에서 사용자별 개별 세션 공간 추가 구현 -> 다중 사용자 완벽 구현<br>
-모든 요청에 개별 세션을 구별하기 위한 sId(sessionId) 추가 & 사용자 식별<br>
-같은 브라우저에서 개별 탭에 로그인된 두개 이상의 계정은 개별적으로 글 추가, 조회, 수정, 삭제 가능<br>
-로그아웃 시 세션에서 로그아웃 사용자 세션 공간만 삭제, But 쿠키까지 일괄 삭제되므로 다중 사용자 일괄 로그아웃
+따라서 새 탭에서 로그인 시 기존 로그인 정보는 항상 새 사용자로 덮어씌워짐 : 단일 사용자 로그인 상태<br>
+
+---
+**해결 :** 더 이상 세션을 무효화하지 않고 같은 세션 내에 사용자별 개별 세션 공간 추가 구현<br>
+```java
+String sessionId = UUID.randomUUID().toString(); // 임의의 고유 ID로 세션 생성
+Map<String, Object> memberSession = Map.of(
+    "email", member.getEmail()
+);
+session.setAttribute("userId_" + sessionId, memberSession); // 사용자 세션
+```
+기존 로그인 정보가 덮어씌워지지 않도록 userId가 아닌 사용자별 세션 공간을 검사 -> 다중 로그인 허용<br>
+```java
+@RequestParam(name = "sId", defaultValue = "") String sessionId
+
+Map<String, Object> memberSession = (Map<String, Object>) session.getAttribute("userId_" + sessionId); // 세션 아이디 존재 확인
+if (memberSession == null) {
+    return "redirect:/member_login"; // 로그인 페이지로 리다이렉션
+}
+String email = (String) memberSession.get("email"); // 세션에서 사용자 식별 후 사용자 정보에서 가져옴
+```
+하지만 요청을 보낸 사용자가 누구인지, 어느 개별 세션 공간인지 어떻게 구분할까?<br>
+-> 모든 요청에 개별 세션을 구별하기 위한 sId(sessionId) 추가하여 사용자 식별<br>
+```java
+// 리다이렉트면 쿼리스트링
+"redirect:/board_list?sId=" + sessionId
+// GetMapping 이면 쿼리스트링
+@RequestParam(name = "sId", defaultValue = "") String sessionId
+// Post/Delete/Put Mapping 이면 경로변수
+@PathVariable("sId") String sessionId
+```
+같은 크롬 브라우저에서 개별 탭에 로그인된 두개 이상의 계정은 개별적으로 글 추가, 조회, 수정, 삭제 가능<br>
+=> **다중 사용자 완벽 구현**<br>
+로그아웃 시에도 더 이상 세션을 무효화하지 않고 사용자의 개별 세션 공간만 삭제.<br>
+```java
+session.removeAttribute("userId_" + sId)
+```
+But 쿠키를 삭제하므로 다중 사용자 일괄 로그아웃 처리
 <p align="center">
   <img src="https://github.com/user-attachments/assets/9bdb8fd2-91c6-4d7e-bca8-212db9417821"  width="80%" height="80%"/>
 </p>
@@ -410,8 +445,6 @@ public String member_logout(Model model, HttpServletRequest request2, HttpServle
 현재 요청의 사용자를 식별 & 사용자별 세션ID에 접근할 수 있도록 경로변수 또는 쿼리스트링으로 sId(sessionId) 전달
 ```java
 @GetMapping("/board_list") // 새로운 게시판 링크 지정
-// 1) 게시글 리스트는 페이징 / 클래스 Page<T>, Pageable - PageRequest
-// 2) 키워드, 페이지 값 필요 : String keyword, Int page + 처음 들어왔을 때, 디폴트값 필요
 public String board_list(
     Model model,
     @RequestParam(name = "sId", defaultValue = "") String sessionId,
@@ -438,7 +471,8 @@ public String board_list(
 <!-- 페이지 링크 -->
 <a class="page-link" th:href="@{/board_list(page=${i}, keyword=${keyword}, sId=${sessionId})}" th:text="${i + 1}">1</a>
 ```
-10주차 연습문제 수정
+10주차 연습문제 수정<br>
+사용자 이름으로 게시글 저장 기능
 ```java
 // board 게시판 글 추가
 @PostMapping("/api/boards/{sId}") // 글쓰기 게시판 저장
@@ -452,7 +486,9 @@ public String addboards(@ModelAttribute AddArticleRequest request, @PathVariable
     blogService.save(request);
     return "redirect:/board_list?sId=" + sessionId; // .HTML 연결
 }
-
+```
+같은 사용자일 경우만 수정, 삭제 버튼 활성화
+```java
 // 게시글 조회
 @GetMapping("/board_view/{id}") // 게시판 링크 지정
 public String board_view(Model model, @PathVariable Long id, HttpSession session, @RequestParam("sId") String sessionId) {
